@@ -32,7 +32,10 @@ def fetch_chromedriver_version(major_version: str) -> str:
 
 def fetch_chromedriver(version: str) -> None:
     url = CHROME_DRIVER_URL.format(version=version, arch="linux64")
-    urllib.request.urlretrieve(url=url, filename="chromedriver.zip")
+    with urllib.request.urlopen(url) as res:
+        data = res.read()
+        with open("chromedriver.zip", "wb") as f:
+            f.write(data)
 
 def get_chrome_version() -> str:
     output = subprocess.run(['google-chrome', '--version'], capture_output=True, text=True).stdout
