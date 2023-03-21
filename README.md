@@ -29,3 +29,12 @@ echo "111.0.5563.64-1" | chromedriver-downloader
 カレントディレクトリに`chromedriver.zip`がダウンロードされます。
 
 The `chromedriver.zip` will be downloaded to the current directory.
+
+## テスト / Test
+
+```
+# unitest
+make test
+# docker test
+docker build .
+```
