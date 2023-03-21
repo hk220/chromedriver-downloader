@@ -23,7 +23,7 @@ google-chrome --version | chromedriver-downloader
 # from deb file
 dpkg-deb -f ./google-chrome-stable_current_amd64.deb version | chromedriver-downloader
 # from version
-echo "111.0.5563.64-1" | chromedriver-downloader
+echo "111.0.5563.64" | chromedriver-downloader
 ```
 
 カレントディレクトリに`chromedriver.zip`がダウンロードされます。
