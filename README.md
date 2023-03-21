@@ -10,6 +10,12 @@ This is a tool that estimates the available chromedriver version from the Google
 At this time, it is only for Linux and google chrome.
 It does not work on chromium or non-Linux environments.
 
+## インストール
+
+```
+pip install git+https://github.com/hk220/chromedriver-downloader.git
+```
+
 ## 使い方 / Usage
 
 ```bash
