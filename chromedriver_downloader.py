@@ -1,4 +1,4 @@
-import logging
+import subprocess
 import urllib.request
 
 LATEST_RELEASE_URL = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_"
@@ -7,10 +7,10 @@ CHROME_DRIVER_URL = "https://chromedriver.storage.googleapis.com/{version}/chrom
 class ChromeVersionFormatExepction(Exception):
     pass
 
-def get_chrome_version(text: str) -> str:
+def parse_chrome_version(text: str) -> str:
     splited_text = text.strip().split()
     if len(splited_text) != 3:
-        raise ChromeVersionFormatExepction("Must be able to divide into 3 words.")
+        raise ChromeVersionFormatExepction(f"Must be able to divide into 3 words: {text}")
     
     version = splited_text[2]
     return version
@@ -33,3 +33,17 @@ def fetch_chromedriver_version(major_version: str) -> str:
 def fetch_chromedriver(version: str) -> None:
     url = CHROME_DRIVER_URL.format(version=version, arch="linux64")
     urllib.request.urlretrieve(url=url, filename="chromedriver.zip")
+
+def get_chrome_version() -> str:
+    output = subprocess.run(['google-chrome', '--version'], capture_output=True, text=True).stdout
+    return output
+
+def main() -> None:
+    chrome_version = get_chrome_version()
+    version = parse_chrome_version(chrome_version)
+    major_version = get_major_version(version)
+    chromedriver_version = fetch_chromedriver_version(major_version)
+    fetch_chromedriver(chromedriver_version)
+    
+if __name__ == "__main__":
+    main()
