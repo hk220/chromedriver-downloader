@@ -9,7 +9,7 @@ This is a tool that estimates the available chromedriver version from the Google
 At this time, it is only for google chrome.
 It may not work on chromium.
 
-## インストール
+## インストール / Install
 
 ```
 pip install git+https://github.com/hk220/chromedriver-downloader.git
