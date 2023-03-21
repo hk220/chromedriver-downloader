@@ -1,13 +1,13 @@
 import unittest
 
-from chromedriver_downloader import get_chrome_version, get_major_version
+from chromedriver_downloader import parse_chrome_version, get_major_version
 
 class TestChromeDriverDownloader(unittest.TestCase):
 
-    def test_get_chrome_version(self):
+    def test_parse_chrome_version(self):
         text = "Google Chrome 111.0.5563.64\n"
         expect = "111.0.5563.64"
-        actual = get_chrome_version(text)
+        actual = parse_chrome_version(text)
         self.assertEqual(actual, expect)
 
     def test_get_major_version(self):
