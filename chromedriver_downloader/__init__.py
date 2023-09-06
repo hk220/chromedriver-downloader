@@ -1,5 +1,4 @@
 import logging
-import re
 import sys
 import urllib.request
 import urllib.error
