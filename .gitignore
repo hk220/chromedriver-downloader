@@ -1,6 +1,7 @@
 chromedriver.zip
 LICENSE.chromedriver
-chromedriver
+chromedriver-*.zip
+chrome-*.zip
 __pycache__
 build
 dist

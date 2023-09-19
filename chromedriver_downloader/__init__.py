@@ -1,93 +1,52 @@
 import logging
-import re
 import sys
 import urllib.request
 import urllib.error
+import json
+
+VERSION_API = "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json"
 
 logging.basicConfig(level=logging.DEBUG)
 
-LATEST_RELEASE_URL = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_"
-CHROME_DRIVER_URL = "https://chromedriver.storage.googleapis.com/{version}/chromedriver_{arch}.zip"
+def download(url, filename):
+    try:
+        with urllib.request.urlopen(url) as res:
+            data = res.read()
+            with open(filename, "wb") as f:
+                f.write(data)
+    except urllib.error.URLError as e:
+        logging.critical(f"Fetch {filename} error: {e}")
+        exit(255)
 
+def get_url(chrome_version, platform):
+    chrome_url = ""
+    chromedriver_url = ""
+    body = ""
+    try:
+        with urllib.request.urlopen(VERSION_API) as f:
+            body = f.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        logging.critical(f"Fetch chromedriver version error: {e}")
+        exit(255)
+    obj = json.loads(body)
+    chrome_url = ""
+    chromedriver_url = ""
+    for v in obj["versions"]:
+        if v["version"] == chrome_version:
+            for d in v["downloads"]["chrome"]:
+                if d["platform"] == platform:
+                    chrome_url = d["url"]
+            for d in v["downloads"]["chromedriver"]:
+                if d["platform"] == platform:
+                    chromedriver_url = d["url"]
+    return (chrome_url, chromedriver_url)
 
-class ChromeVersionFormatExepction(Exception):
-    pass
-
-
-class Chrome(object):
-    def __init__(self, chrome_version: str) -> None:
-        self._chrome_version = chrome_version
-        
-    @property
-    def version(self) -> str:
-        return self._chrome_version
-        
-    @property
-    def major_version(self) -> str:
-        splited_version = self._chrome_version.split('.')
-        if len(splited_version) != 4:
-            raise ChromeVersionFormatExepction("Must be 4 numbers.")
-        
-        return '.'.join(splited_version[:-1])
-    
-    @classmethod
-    def parse(cls, version_text: str) -> 'Chrome':
-        # google-chrome --version
-        # Google Chrome 111.0.5563.64
-        if version_text.startswith("Google Chrome"):
-            splited_text = version_text.strip().split()
-            if len(splited_text) != 3:
-                raise ChromeVersionFormatExepction(f"Must be able to divide into 3 words: {version_text}")
-            return cls(splited_text[2])
-        # dpkg-deb -f ./google-chrome-stable_current_amd64.deb version
-        # 111.0.5563.64-1
-        if re.match(r"^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+$", version_text.strip()):
-            splited_text = version_text.strip().split("-")
-            if len(splited_text) != 2:
-                raise ChromeVersionFormatExepction(f"Must be able to divide into 2 words: {version_text}")
-            return cls(splited_text[0])
-        # 111.0.5563.64
-        if re.match(r"^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$", version_text.strip()):
-            return cls(version_text.strip())
-        else:
-            raise ChromeVersionFormatExepction(f"Not found format: {version_text}")            
-
-
-class ChromeDriver(object):
-    @staticmethod
-    def download(version: str) -> None:
-        splited_version = version.split('.')
-        if len(splited_version) != 4:
-            raise ChromeVersionFormatExepction("Must be 4 numbers.")
-        major_version = '.'.join(splited_version[:-1])
-        latest_release_url = LATEST_RELEASE_URL + major_version
-        body = ""
-        try:
-            with urllib.request.urlopen(latest_release_url) as res:
-                body = res.read()
-        except urllib.error.URLError as e:
-            logging.critical(f"Fetch chromedriver version error: {e}")
-            exit(255)
-        chromedriver_version = body.decode("utf-8").strip()
-        logging.info(f"chromedriver version: {chromedriver_version}")
-        chrome_driver_url = CHROME_DRIVER_URL.format(version=chromedriver_version, arch="linux64")
-        try:
-            with urllib.request.urlopen(chrome_driver_url) as res:
-                data = res.read()
-                with open("chromedriver.zip", "wb") as f:
-                    f.write(data)
-        except urllib.error.URLError as e:
-            logging.critical(f"Fetch chromedriver error: {e}")
-            exit(255)
-
-
-def main() -> None:
-    # read from stdin
-    version_text = "".join(sys.stdin.readlines())
-    logging.info(f"version_text: {version_text.strip()}")
-    chrome = Chrome.parse(version_text)
-    logging.info(f"chrome version: {chrome.version}")
-    ChromeDriver.download(chrome.version)
+def main():
+    chrome_version = sys.argv[1]
+    platform = sys.argv[2]
+    chrome_url, chromedriver_url = get_url(chrome_version, platform)
+    download(chrome_url, f"chrome-{platform}.zip")
+    download(chromedriver_url, f"chromedriver-{platform}.zip")
 
 if __name__ == "__main__":
     main()
